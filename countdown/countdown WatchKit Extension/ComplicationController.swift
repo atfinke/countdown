@@ -31,22 +31,20 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
     // MARK: - Timeline Population
     
     func getCurrentTimelineEntry(for complication: CLKComplication, withHandler handler: @escaping (CLKComplicationTimelineEntry?) -> Void) {
-        // Call the handler with the current timeline entry
-        print(#function)
-        guard let currentClass = ClassManager.upcomingClasses().first,
-        currentClass.course.start.timeIntervalSinceNow < 0 else {
-            handler(nil)
-            return
-        }
-        
         let template = CLKComplicationTemplateUtilitarianLargeFlat()
-        let dateProvider = CLKRelativeDateTextProvider(date: currentClass.end,
-                                                       style: .timer,
-                                                       units: [.hour, .minute, .second])
-        let course = "\(currentClass.course)"
-        template.textProvider = CLKTextProvider(format: "%@: %@", course, dateProvider)
-        let entry = CLKComplicationTimelineEntry(date: currentClass.start, complicationTemplate: template)
-        handler(entry)
+        if let currentClass = ClassManager.upcomingClasses().first, currentClass.course.start.timeIntervalSinceNow < 0 {
+            let dateProvider = CLKRelativeDateTextProvider(date: currentClass.end,
+                                                           style: .timer,
+                                                           units: [.hour, .minute, .second])
+            let course = "\(currentClass.course)"
+            template.textProvider = CLKTextProvider(format: "%@: %@", course, dateProvider)
+            let entry = CLKComplicationTimelineEntry(date: currentClass.start, complicationTemplate: template)
+            handler(entry)
+        } else {
+            template.textProvider = CLKTextProvider(format: "")
+            let entry = CLKComplicationTimelineEntry(date: Date(), complicationTemplate: template)
+            handler(entry)
+        }
     }
     
     func getTimelineEntries(for complication: CLKComplication, before date: Date, limit: Int, withHandler handler: @escaping ([CLKComplicationTimelineEntry]?) -> Void) {
